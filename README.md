@@ -1,9 +1,9 @@
 # pico-dice_roll 
 ## Description
 dice roll
-
 Operation confirmed on XIAO RP2040 and Expansion Board
 
+under development.
 🌱 I’m currently learning Python.
 
 ## Requirement
