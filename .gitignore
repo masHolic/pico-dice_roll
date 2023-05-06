@@ -4,5 +4,5 @@ lib/
 .vscode/
 *.code-workspace
 
-# pocowgo
-.pocowgo
+# picowgo
+.picowgo
