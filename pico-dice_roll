@@ -1,0 +1,118 @@
+from machine import Pin, I2C
+import time
+import math
+
+# https://files.seeedstudio.com/wiki/XIAO-RP2040/img/micropython/XIAO-RP2040-MicroPython-Grove.zip
+from ssd1306 import SSD1306_I2C
+# https://github.com/backy0175/pico-examples/blob/main/Button/PushButton.py
+from PushButton import Debounced
+
+i2c = I2C(1, scl=Pin(7), sda=Pin(6), freq=200000)
+display = SSD1306_I2C(128, 64, i2c)
+screen_width = 127
+screen_height = 63
+
+
+def fill_circle(x, y, l, color):
+    for r in range(360):
+        display.line(x, y, int(x + l * math.cos(math.radians(r))), int(y - l * math.sin(math.radians(r))), color)
+
+# def button_handler(p):
+#    status = 'Released' if p.value() == 1 else 'Pushed'
+#    print(status, p)
+#    global dice_number
+#    dice_number += 1
+#    if dice_number >= 7:
+#        dice_number = 1
+#    print(f'{dice_number=}')
+#
+# button = Pin(27, Pin.IN, Pin.PULL_UP)
+# button.irq(trigger=Pin.IRQ_FALLING, handler=button_handler)
+
+
+def press_button(button):
+    print('pressed ', button)
+    global next_dice_number
+    next_dice_number += 1
+    if next_dice_number >= 7:
+        next_dice_number = 1
+    global dt_pushed
+    dt_pushed = time.ticks_ms()
+    print(f'{next_dice_number=}')
+
+
+p1 = Debounced(27, Pin.PULL_UP)
+p1.debouncedIRQ(press_button, Pin.IRQ_FALLING)
+
+
+next_dice_number = 1
+timer = 5
+dt_pushed = time.ticks_ms()
+dt_count = timer
+
+margin = 3
+dice_size = 38 
+line_size = 1
+dice_number = 1
+dice_count = 1
+dice_max = 6
+
+while dt_count > 0:
+    display.fill(0)
+#    display.hline(0, 0, 100, 1)
+#    display.hline(0, 63, 100, 1)
+#    display.vline(0, 0, 60, 1)
+#    display.vline(127, 0, 60, 1)
+    dice_number = next_dice_number
+    dice_count = 1
+    if dice_number == 1:
+        dice_size = 58 
+        circle_size = 5
+#        print(f'{dice_size=},{circle_size=}')
+    elif dice_number == 2:
+        dice_size = 47
+        circle_size = 5
+    elif dice_number == 3:
+        dice_size = 39
+        circle_size = 4
+    else:
+        dice_size = 28
+        circle_size = 3
+#    print(f'{dice_number=}')
+
+    for i in range(2):
+        for j in range(4):
+            x = margin + (margin * j) + (dice_size * j)
+            y = margin + (margin * i) + (dice_size * i)
+#            print(f'{i=},{j=},{x=},{y=}')
+#            print(f'{dice_size=},{circle_size=}')
+            display.fill_rect(x, y, dice_size, dice_size, 1)
+            display.fill_rect(x+line_size, y+line_size, dice_size-line_size*2, dice_size-line_size*2, 0)
+            display.pixel(x, y, 0)
+            display.pixel(x + dice_size - 1, y, 0)
+            display.pixel(x, y + dice_size - 1, 0)
+            display.pixel(x + dice_size-1, y + dice_size - 1, 0)
+
+            fill_circle(x + (dice_size // 2), y + (dice_size // 2), circle_size, 1)
+
+            dice_count += 1
+            print(f'{dice_count=},{dice_number=}')
+            if dice_count > dice_number:
+                break
+        else:
+            continue
+        break
+
+    dt_now = time.ticks_ms()
+    dt_count = timer - (dt_now - dt_pushed) / 1000
+    print(dt_count)
+    display.text(f'{dt_count:.2f}', 95, 55, 1)
+#    display.text('00000', 85, 55, 1)
+
+    display.show()
+
+    time.sleep(0.1)
+
+display.fill(0)
+display.text('Game start', 95, 55, 1)
+display.show()
