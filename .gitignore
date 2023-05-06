@@ -1,1 +1,8 @@
-/pico-dice_roll.py
+lib/
+
+# vscode
+.vscode/
+*.code-workspace
+
+# pocowgo
+.pocowgo
