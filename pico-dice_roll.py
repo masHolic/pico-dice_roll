@@ -18,7 +18,7 @@ class Dice:
         self.spot_size = size // 8
         self.spots = max(1, min(spots, 6))
         print(f'{spots=}, {self.spots=}')
-        self.show()
+#        self.show()
 
     def __str__(self):
         return f'[x: {self.x}, y: {self.y}, spots:{self.spots}]'
@@ -103,15 +103,15 @@ def press_button(button):
     if status == 'wait':
         status = 'select'
 
-    if status == 'select':
+    elif status == 'select':
         global next_dice_number
         next_dice_number += 1
         if next_dice_number > dice_max:
             next_dice_number = 1
-        print(f'{next_dice_number=}')
+#        print(f'{next_dice_number=}')
 
-    global speed
-    if status == 'roll':
+    elif status == 'roll':
+        global speed
         if speed == 'fast':
             speed = 'slow'
         elif speed == 'slow':
@@ -145,56 +145,44 @@ dices = []
 while True:
     if status == 'wait':
         display.fill(0)
-        time.sleep(0.1)
         dice_size = 58
-        circle_size = 5
-        row = 1
-        col = 1
         if not dices:
-            x = margin + (margin * col) + (dice_size * col)
-            y = margin + (margin * row) + (dice_size * row)
+            x = margin
+            y = margin
             dices.append(Dice(x, y, dice_size))
-            dice_count += 1
 
         display.text('Push', 95, 55, 1)
         for dice in dices:
             dice.show()
         display.show()
-#        continue
 
     elif status == 'select':
+        display.fill(0)
         if dice_number != next_dice_number:
             dice_number = next_dice_number
-            display.fill(0)
             dices.clear()
         if dice_number == 1:
             dice_size = 58
-#            circle_size = 5
             row = 1
             col = 1
         elif dice_number == 2:
             dice_size = 44
-#            circle_size = 5
             row = 1
             col = 2
         elif dice_number == 3:
             dice_size = 39
-#            circle_size = 4
             row = 1
             col = 3
         elif dice_number <= 7:
             dice_size = 28
-#            circle_size = 3
             row = 2
             col = 4
         elif dice_number <= 12:
             dice_size = 18
-#            circle_size = 3
             row = 3
             col = 4
         else:
             dice_size = 18
-#            circle_size = 3
             row = 3
             col = 6
 
@@ -206,12 +194,13 @@ while True:
                     y = margin + (margin * i) + (dice_size * i)
                     dices.append(Dice(x, y, dice_size))
                     dice_count += 1
-            #        print(f'{dice_count=},{dice_number=}')
                     if dice_count > dice_number:
                         break
                 else:
                     continue
                 break
+        for dice in dices:
+            dice.show()
         display.show()
 
         expect = 1 / (1 / (6 ** (dice_number - 1)))
@@ -222,7 +211,6 @@ while True:
         display.text(f'{countdown:.2f}', 95, 55, 1)
 
         display.show()
-        print(f'{status=}')
 
         if countdown <= 0:
             status = 'roll'
