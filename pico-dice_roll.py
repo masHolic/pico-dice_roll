@@ -7,18 +7,18 @@ from ssd1306 import SSD1306_I2C
 # https://github.com/backy0175/pico-examples/blob/main/Button/PushButton.py
 from PushButton import Debounced
 
-#from dice import Dice
-
 import random
+
 
 class Dice:
     def __init__(self, x: int, y: int, size: int, spots=1):
         self.x = x
         self.y = y
         self.dice_size = size
-        self.spot_size = size // 8 
+        self.spot_size = size // 8
         self.spots = max(1, min(spots, 6))
         print(f'{spots=}, {self.spots=}')
+        self.show()
 
     def __str__(self):
         return f'[x: {self.x}, y: {self.y}, spots:{self.spots}]'
@@ -35,18 +35,25 @@ class Dice:
     def __hash__(self):
         return super().__hash__()
 
-
     def show(self):
         self.show_outline()
         self.show_spots()
 
     def show_outline(self):
-        display.fill_rect(self.x, self.y, self.dice_size, self.dice_size, 1)
-        display.fill_rect(self.x+line_size, self.y+line_size, self.dice_size-line_size*2, self.dice_size-line_size*2, 0)
+        display.rect(self.x, self.y, self.dice_size, self.dice_size, 1)
+        display.fill_rect(self.x, self.y, 2, 2, 0)
+        display.fill_rect(self.x + self.dice_size - 2, self.y, 2, 2, 0)
+        display.fill_rect(self.x, self.y + self.dice_size - 2, 2, 2, 0)
+        display.fill_rect(self.x + self.dice_size - 2, self.y + self.dice_size - 2, 2, 2, 0)
         display.pixel(self.x, self.y, 0)
         display.pixel(self.x + self.dice_size - 1, self.y, 0)
         display.pixel(self.x, self.y + self.dice_size - 1, 0)
         display.pixel(self.x + self.dice_size-1, self.y + self.dice_size - 1, 0)
+
+        display.pixel(self.x + 1, self.y + 1, 1)
+        display.pixel(self.x + self.dice_size - 2, self.y + 1, 1)
+        display.pixel(self.x + 1, self.y + self.dice_size - 2, 1)
+        display.pixel(self.x + self.dice_size - 2, self.y + self.dice_size - 2, 1)
 
     def show_spots(self):
         if self.spots == 1:
@@ -81,54 +88,47 @@ class Dice:
         self.spots = random.randint(1, 6)
 
 
-
-
-
 i2c = I2C(1, scl=Pin(7), sda=Pin(6), freq=200000)
 display = SSD1306_I2C(128, 64, i2c)
 screen_width = 127
 screen_height = 63
 
-def fill_circle(x, y, l, color):
-    for r in range(360):
-        display.line(x, y, int(x + l * math.cos(math.radians(r))), int(y - l * math.sin(math.radians(r))), color)
-
-# def button_handler(p):
-#    status = 'Released' if p.value() == 1 else 'Pushed'
-#    print(status, p)
-#    global dice_number
-#    dice_number += 1
-#    if dice_number >= 7:
-#        dice_number = 1
-#    print(f'{dice_number=}')
-#
-# button = Pin(27, Pin.IN, Pin.PULL_UP)
-# button.irq(trigger=Pin.IRQ_FALLING, handler=button_handler)
-
 
 def press_button(button):
-    print('pressed ', button)
-    global next_dice_number
-    next_dice_number += 1
-    if next_dice_number > dice_max:
-        next_dice_number = 1
     global dt_pushed
     dt_pushed = time.ticks_ms()
-    print(f'{next_dice_number=}')
+    print('pressed ', button)
+
+    global status
+    if status == 'wait':
+        status = 'select'
+
+    if status == 'select':
+        global next_dice_number
+        next_dice_number += 1
+        if next_dice_number > dice_max:
+            next_dice_number = 1
+        print(f'{next_dice_number=}')
+
+    global speed
+    if status == 'roll':
+        if speed == 'fast':
+            speed = 'slow'
+        elif speed == 'slow':
+            speed = 'fast'
 
 
 p1 = Debounced(27, Pin.PULL_UP)
 p1.debouncedIRQ(press_button, Pin.IRQ_FALLING)
 
+status = 'wait'
 
 next_dice_number = 1
 timer = 5
 dt_pushed = time.ticks_ms()
-dt_count = timer
+countdown = timer
 
 margin = 3
-dice_size = 38 
-line_size = 1
 dice_number = 1
 dice_count = 1
 dice_max = 16
@@ -136,164 +136,121 @@ dice_max = 16
 roll_count = 0
 match_count = 0
 
+speed = 'slow'
+roll_time = {'fast': 1, 'slow': 20}
+roll_wait = {'fast': 0, 'slow': 2}
+
 dices = []
 
-while dt_count > 0:
-    display.fill(0)
-#    display.hline(0, 0, 100, 1)
-#    display.hline(0, 63, 100, 1)
-#    display.vline(0, 0, 60, 1)
-#    display.vline(127, 0, 60, 1)
-    if dice_number != next_dice_number:
-        dice_number = next_dice_number
-        dices.clear()
-    dice_count = 1
-    if dice_number == 1:
-        dice_size = 58 
+while True:
+    if status == 'wait':
+        display.fill(0)
+        time.sleep(0.1)
+        dice_size = 58
         circle_size = 5
-#        print(f'{dice_size=},{circle_size=}')
         row = 1
         col = 1
-    elif dice_number == 2:
-        dice_size = 44
-        circle_size = 5
-        row = 1
-        col = 2
-    elif dice_number == 3:
-        dice_size = 39
-        circle_size = 4
-        row = 1
-        col = 3
-    elif dice_number <= 7:
-        dice_size = 28
-        circle_size = 3
-        row = 2
-        col = 4
-    elif dice_number <= 12:
-        dice_size = 18 
-        circle_size = 3
-        row = 3
-        col = 4
-    else:
-        dice_size = 18 
-        circle_size = 3
-        row = 3
-        col = 6
-#    print(f'{dice_number=}')
+        if not dices:
+            x = margin + (margin * col) + (dice_size * col)
+            y = margin + (margin * row) + (dice_size * row)
+            dices.append(Dice(x, y, dice_size))
+            dice_count += 1
 
-
-    #dices.clear()
-
-    if not dices:
-        for i in range(row):
-            for j in range(col):
-                x = margin + (margin * j) + (dice_size * j)
-                y = margin + (margin * i) + (dice_size * i)
-                dices.append(Dice(x, y, dice_size))
-                dice_count += 1
-        #        print(f'{dice_count=},{dice_number=}')
-                if dice_count > dice_number:
-                    break
-            else:
-                continue
-            break
-
-    for i in range(1):
+        display.text('Push', 95, 55, 1)
         for dice in dices:
-#            dice.roll()
             dice.show()
         display.show()
-
-#    for i in range(row):
-#        for j in range(col):
-#            x = margin + (margin * j) + (dice_size * j)
-#            y = margin + (margin * i) + (dice_size * i)
-##            print(f'{i=},{j=},{x=},{y=}')
-##            print(f'{dice_size=},{circle_size=}')
-#            display.fill_rect(x, y, dice_size, dice_size, 1)
-#            display.fill_rect(x+line_size, y+line_size, dice_size-line_size*2, dice_size-line_size*2, 0)
-#            display.pixel(x, y, 0)
-#            display.pixel(x + dice_size - 1, y, 0)
-#            display.pixel(x, y + dice_size - 1, 0)
-#            display.pixel(x + dice_size-1, y + dice_size - 1, 0)
-#
-#            fill_circle(x + (dice_size // 2), y + (dice_size // 2), circle_size, 1)
-#
-#            dice_count += 1
-##            print(f'{dice_count=},{dice_number=}')
-#            if dice_count > dice_number:
-#                break
-#        else:
-#            continue
-#        break
-
-
-
-
-
-
-    dt_now = time.ticks_ms()
-    dt_count = timer - (dt_now - dt_pushed) / 1000
-#    print(dt_count)
-    display.text(f'{dt_count:.2f}', 95, 55, 1)
-#    display.text('00000', 85, 55, 1)
-
-    display.show()
-
-    time.sleep(0.1)
-
-
-
-
-expect = 1 / (1 / (6 ** (dice_number - 1)))
-
-#dice_count = 1
-#for i in range(2):
-#    for j in range(4):
-#        x = margin + (margin * j) + (dice_size * j)
-#        y = margin + (margin * i) + (dice_size * i)
-#        dices.append(Dice(x, y, dice_size))
-#        dice_count += 1
-##        print(f'{dice_count=},{dice_number=}')
-#        if dice_count > dice_number:
-#            break
-#    else:
 #        continue
-#    break
-#
-#print(dices)
-for dice in dices:
-    print(f'{dice.x=},{dice.y=},{dice.spots=}')
 
-while True:
-    display.fill(0)
-#    display.text('00000', 85, 55, 1)
-    display.text(f'{roll_count: >5}', 85, 55, 1)
-#    display.text(f'/{expect:05}', 75, 55, 1)
+    elif status == 'select':
+        if dice_number != next_dice_number:
+            dice_number = next_dice_number
+            display.fill(0)
+            dices.clear()
+        if dice_number == 1:
+            dice_size = 58
+#            circle_size = 5
+            row = 1
+            col = 1
+        elif dice_number == 2:
+            dice_size = 44
+#            circle_size = 5
+            row = 1
+            col = 2
+        elif dice_number == 3:
+            dice_size = 39
+#            circle_size = 4
+            row = 1
+            col = 3
+        elif dice_number <= 7:
+            dice_size = 28
+#            circle_size = 3
+            row = 2
+            col = 4
+        elif dice_number <= 12:
+            dice_size = 18
+#            circle_size = 3
+            row = 3
+            col = 4
+        else:
+            dice_size = 18
+#            circle_size = 3
+            row = 3
+            col = 6
 
-    #for i in range(20):
-    for i in range(1):
-        for dice in dices:
-            dice.roll()
-            dice.show()
+        dice_count = 1
+        if not dices:
+            for i in range(row):
+                for j in range(col):
+                    x = margin + (margin * j) + (dice_size * j)
+                    y = margin + (margin * i) + (dice_size * i)
+                    dices.append(Dice(x, y, dice_size))
+                    dice_count += 1
+            #        print(f'{dice_count=},{dice_number=}')
+                    if dice_count > dice_number:
+                        break
+                else:
+                    continue
+                break
         display.show()
 
-#    print(dices)
-#    print(min(dices))
-#    print(max(dices))
-    if min(dices) == max(dices):
-        print(f'match! {roll_count=}')
-        match_count += 1
+        expect = 1 / (1 / (6 ** (dice_number - 1)))
+        display.text(f'{expect: >5}', 88, 47, 1)
+
+        dt_now = time.ticks_ms()
+        countdown = timer - (dt_now - dt_pushed) / 1000
+        display.text(f'{countdown:.2f}', 95, 55, 1)
+
+        display.show()
+        print(f'{status=}')
+
+        if countdown <= 0:
+            status = 'roll'
+            continue
+        time.sleep(0.1)
+
+    if status == 'roll':
+        display.fill(0)
+        display.text(f'{roll_count: >5}', 85, 55, 1)
+
+        for i in range(roll_time[speed]):
+            display.fill(0)
+            for dice in dices:
+                dice.roll()
+                dice.show()
+            display.text(f'{match_count: >5}', 88, 47, 1)
+            display.text(f'{roll_count: >5}', 88, 55, 1)
+            display.show()
+        time.sleep(roll_wait[speed])
+
+        if min(dices) == max(dices):
+            print(f'match! {roll_count=}')
+            match_count += 1
+            display.text(f'{match_count: >5}', 85, 47, 1)
+            display.show()
+            time.sleep(2)
+
+        roll_count += 1
         display.text(f'{match_count: >5}', 85, 47, 1)
+        display.text(f'{roll_count: >5}', 85, 55, 1)
         display.show()
-        time.sleep(3)
-
-    roll_count += 1
-    display.text(f'{match_count: >5}', 85, 47, 1)
-    display.text(f'{roll_count: >5}', 85, 55, 1)
-    display.show()
-#    time.sleep(1)
-
-
-
-
