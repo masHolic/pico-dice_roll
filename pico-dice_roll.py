@@ -17,8 +17,6 @@ class Dice:
         self.dice_size = size
         self.spot_size = size // 8
         self.spots = max(1, min(spots, 6))
-        print(f'{spots=}, {self.spots=}')
-#        self.show()
 
     def __str__(self):
         return f'[x: {self.x}, y: {self.y}, spots:{self.spots}]'
@@ -108,7 +106,6 @@ def press_button(button):
         next_dice_number += 1
         if next_dice_number > dice_max:
             next_dice_number = 1
-#        print(f'{next_dice_number=}')
 
     elif status == 'roll':
         global speed
@@ -135,10 +132,12 @@ dice_max = 16
 
 roll_count = 0
 match_count = 0
+match = False
 
 speed = 'slow'
-roll_time = {'fast': 1, 'slow': 20}
-roll_wait = {'fast': 0, 'slow': 2}
+roll_time = {'fast': 0, 'slow': 20}
+roll_wait = {'fast': 0, 'slow': 1}
+match_wait = {'fast': 1, 'slow': 4}
 
 dices = []
 
@@ -161,6 +160,7 @@ while True:
         if dice_number != next_dice_number:
             dice_number = next_dice_number
             dices.clear()
+
         if dice_number == 1:
             dice_size = 58
             row = 1
@@ -173,13 +173,9 @@ while True:
             dice_size = 39
             row = 1
             col = 3
-        elif dice_number <= 7:
+        elif dice_number <= 6:
             dice_size = 28
             row = 2
-            col = 4
-        elif dice_number <= 12:
-            dice_size = 18
-            row = 3
             col = 4
         else:
             dice_size = 18
@@ -201,10 +197,9 @@ while True:
                 break
         for dice in dices:
             dice.show()
-        display.show()
 
         expect = 1 / (1 / (6 ** (dice_number - 1)))
-        display.text(f'{expect: >5}', 88, 47, 1)
+        display.text(f'{expect: >12}', 31, 47, 1)
 
         dt_now = time.ticks_ms()
         countdown = timer - (dt_now - dt_pushed) / 1000
@@ -212,15 +207,13 @@ while True:
 
         display.show()
 
-        if countdown <= 0:
-            status = 'roll'
-            continue
         time.sleep(0.1)
 
-    if status == 'roll':
-        display.fill(0)
-        display.text(f'{roll_count: >5}', 85, 55, 1)
+        if countdown <= 0:
+            status = 'roll'
 
+    elif status == 'roll':
+        # dummy spinning dice
         for i in range(roll_time[speed]):
             display.fill(0)
             for dice in dices:
@@ -229,16 +222,27 @@ while True:
             display.text(f'{match_count: >5}', 88, 47, 1)
             display.text(f'{roll_count: >5}', 88, 55, 1)
             display.show()
-        time.sleep(roll_wait[speed])
+
+        roll_count += 1
+
+        display.fill(0)
+        for dice in dices:
+            dice.roll()
+            dice.show()
 
         if min(dices) == max(dices):
             print(f'match! {roll_count=}')
             match_count += 1
-            display.text(f'{match_count: >5}', 85, 47, 1)
-            display.show()
-            time.sleep(2)
+            match = True
+            # time.sleep(2)
+        else:
+            match = False
 
-        roll_count += 1
-        display.text(f'{match_count: >5}', 85, 47, 1)
-        display.text(f'{roll_count: >5}', 85, 55, 1)
+        display.text(f'{match_count: >5}', 88, 47, 1)
+        display.text(f'{roll_count: >5}', 88, 55, 1)
         display.show()
+
+        if match:
+            time.sleep(match_wait[speed])
+
+        time.sleep(roll_wait[speed])
