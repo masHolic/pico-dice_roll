@@ -110,7 +110,7 @@ def press_button(button):
     print('pressed ', button)
     global next_dice_number
     next_dice_number += 1
-    if next_dice_number >= 7:
+    if next_dice_number > dice_max:
         next_dice_number = 1
     global dt_pushed
     dt_pushed = time.ticks_ms()
@@ -131,57 +131,106 @@ dice_size = 38
 line_size = 1
 dice_number = 1
 dice_count = 1
-dice_max = 6
+dice_max = 16
 
 roll_count = 0
 match_count = 0
 
+dices = []
+
 while dt_count > 0:
     display.fill(0)
-
 #    display.hline(0, 0, 100, 1)
 #    display.hline(0, 63, 100, 1)
 #    display.vline(0, 0, 60, 1)
 #    display.vline(127, 0, 60, 1)
-    dice_number = next_dice_number
+    if dice_number != next_dice_number:
+        dice_number = next_dice_number
+        dices.clear()
     dice_count = 1
     if dice_number == 1:
         dice_size = 58 
         circle_size = 5
 #        print(f'{dice_size=},{circle_size=}')
+        row = 1
+        col = 1
     elif dice_number == 2:
         dice_size = 44
         circle_size = 5
+        row = 1
+        col = 2
     elif dice_number == 3:
         dice_size = 39
         circle_size = 4
-    else:
+        row = 1
+        col = 3
+    elif dice_number <= 7:
         dice_size = 28
         circle_size = 3
+        row = 2
+        col = 4
+    elif dice_number <= 12:
+        dice_size = 18 
+        circle_size = 3
+        row = 3
+        col = 4
+    else:
+        dice_size = 18 
+        circle_size = 3
+        row = 3
+        col = 6
 #    print(f'{dice_number=}')
 
-    for i in range(2):
-        for j in range(4):
-            x = margin + (margin * j) + (dice_size * j)
-            y = margin + (margin * i) + (dice_size * i)
-#            print(f'{i=},{j=},{x=},{y=}')
-#            print(f'{dice_size=},{circle_size=}')
-            display.fill_rect(x, y, dice_size, dice_size, 1)
-            display.fill_rect(x+line_size, y+line_size, dice_size-line_size*2, dice_size-line_size*2, 0)
-            display.pixel(x, y, 0)
-            display.pixel(x + dice_size - 1, y, 0)
-            display.pixel(x, y + dice_size - 1, 0)
-            display.pixel(x + dice_size-1, y + dice_size - 1, 0)
 
-            fill_circle(x + (dice_size // 2), y + (dice_size // 2), circle_size, 1)
+    #dices.clear()
 
-            dice_count += 1
-#            print(f'{dice_count=},{dice_number=}')
-            if dice_count > dice_number:
-                break
-        else:
-            continue
-        break
+    if not dices:
+        for i in range(row):
+            for j in range(col):
+                x = margin + (margin * j) + (dice_size * j)
+                y = margin + (margin * i) + (dice_size * i)
+                dices.append(Dice(x, y, dice_size))
+                dice_count += 1
+        #        print(f'{dice_count=},{dice_number=}')
+                if dice_count > dice_number:
+                    break
+            else:
+                continue
+            break
+
+    for i in range(1):
+        for dice in dices:
+#            dice.roll()
+            dice.show()
+        display.show()
+
+#    for i in range(row):
+#        for j in range(col):
+#            x = margin + (margin * j) + (dice_size * j)
+#            y = margin + (margin * i) + (dice_size * i)
+##            print(f'{i=},{j=},{x=},{y=}')
+##            print(f'{dice_size=},{circle_size=}')
+#            display.fill_rect(x, y, dice_size, dice_size, 1)
+#            display.fill_rect(x+line_size, y+line_size, dice_size-line_size*2, dice_size-line_size*2, 0)
+#            display.pixel(x, y, 0)
+#            display.pixel(x + dice_size - 1, y, 0)
+#            display.pixel(x, y + dice_size - 1, 0)
+#            display.pixel(x + dice_size-1, y + dice_size - 1, 0)
+#
+#            fill_circle(x + (dice_size // 2), y + (dice_size // 2), circle_size, 1)
+#
+#            dice_count += 1
+##            print(f'{dice_count=},{dice_number=}')
+#            if dice_count > dice_number:
+#                break
+#        else:
+#            continue
+#        break
+
+
+
+
+
 
     dt_now = time.ticks_ms()
     dt_count = timer - (dt_now - dt_pushed) / 1000
@@ -198,21 +247,20 @@ while dt_count > 0:
 
 expect = 1 / (1 / (6 ** (dice_number - 1)))
 
-dices = []
-dice_count = 1
-for i in range(2):
-    for j in range(4):
-        x = margin + (margin * j) + (dice_size * j)
-        y = margin + (margin * i) + (dice_size * i)
-        dices.append(Dice(x, y, dice_size))
-        dice_count += 1
-#        print(f'{dice_count=},{dice_number=}')
-        if dice_count > dice_number:
-            break
-    else:
-        continue
-    break
-
+#dice_count = 1
+#for i in range(2):
+#    for j in range(4):
+#        x = margin + (margin * j) + (dice_size * j)
+#        y = margin + (margin * i) + (dice_size * i)
+#        dices.append(Dice(x, y, dice_size))
+#        dice_count += 1
+##        print(f'{dice_count=},{dice_number=}')
+#        if dice_count > dice_number:
+#            break
+#    else:
+#        continue
+#    break
+#
 #print(dices)
 for dice in dices:
     print(f'{dice.x=},{dice.y=},{dice.spots=}')
