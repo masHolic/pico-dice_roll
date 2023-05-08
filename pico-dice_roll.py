@@ -1,13 +1,12 @@
-from machine import Pin, I2C
+from machine import Pin, I2C, PWM
 import time
-import math
+import random
+import _thread
 
 # https://files.seeedstudio.com/wiki/XIAO-RP2040/img/micropython/XIAO-RP2040-MicroPython-Grove.zip
 from ssd1306 import SSD1306_I2C
 # https://github.com/backy0175/pico-examples/blob/main/Button/PushButton.py
 from PushButton import Debounced
-
-import random
 
 
 class Dice:
@@ -114,6 +113,23 @@ def press_button(button):
         elif speed == 'slow':
             speed = 'fast'
 
+buzzer = PWM(Pin(29, Pin.OUT))
+
+
+def sound_dice():
+    for i in reversed(range(6, 15)):
+        hz = random.randint(1100, 1130)
+        buzzer.freq(hz)
+        du = 1768
+        buzzer.duty_u16(int(du * i / 10))
+        time.sleep(0.01)
+        buzzer.deinit()
+        aaa = random.randint(8, 15)
+        time.sleep(i * aaa / 1000)
+
+
+
+
 
 p1 = Debounced(27, Pin.PULL_UP)
 p1.debouncedIRQ(press_button, Pin.IRQ_FALLING)
@@ -213,6 +229,7 @@ while True:
             status = 'roll'
 
     elif status == 'roll':
+        _thread.start_new_thread(sound_dice,())
         # dummy spinning dice
         for i in range(roll_time[speed]):
             display.fill(0)
