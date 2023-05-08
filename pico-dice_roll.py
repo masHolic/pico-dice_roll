@@ -117,8 +117,9 @@ buzzer = PWM(Pin(29, Pin.OUT))
 
 
 def sound_dice():
-    for i in reversed(range(6, 15)):
-        hz = random.randint(1100, 1130)
+    global dice_se
+    for i in reversed(range(4, 16)):
+        hz = random.randint(1100, 1150)
         buzzer.freq(hz)
         du = 1768
         buzzer.duty_u16(int(du * i / 10))
@@ -126,6 +127,31 @@ def sound_dice():
         buzzer.deinit()
         aaa = random.randint(8, 15)
         time.sleep(i * aaa / 1000)
+    dice_se = False
+    _thread.exit
+
+def sound_repdigit():
+    global repdigit_se
+#    freqs = [987, 830, 987, 830, 987, 830]
+#    freqs = [880, 698, 880, 698, 880, 698]
+#    freqs = [783, 659, 783, 659, 783, 659]
+
+#    freqs = [987, 830, 987, 830, 987, 830]
+#    freqs = [698, 880, 698, 880, 698, 880]
+#    freqs = [659, 783, 659, 783, 659, 783]
+
+#    freqs = [1760, 1396, 1760, 1396, 1760, 1396]
+
+    freqs = [1567, 1318, 1567, 1318, 1567, 1318]
+    for idx in range(0, len(freqs)):
+        buzzer.freq(freqs[idx])
+        buzzer.duty_u16(256 * 16)
+        time.sleep(0.05)
+        buzzer.deinit()
+        time.sleep(0.05)
+    repdigit_se = False
+    _thread.exit
+
 
 
 
@@ -231,7 +257,9 @@ while True:
     elif status == 'roll':
         _thread.start_new_thread(sound_dice,())
         # dummy spinning dice
-        for i in range(roll_time[speed]):
+#        for i in range(roll_time[speed]):
+        dice_se = True
+        while dice_se:
             display.fill(0)
             for dice in dices:
                 dice.roll()
@@ -260,6 +288,10 @@ while True:
         display.show()
 
         if match:
+#            sound_repdigit()
+            _thread.start_new_thread(sound_repdigit,())
             time.sleep(match_wait[speed])
+            while repdigit_se:
+                time.sleep(0.1)
 
         time.sleep(roll_wait[speed])
