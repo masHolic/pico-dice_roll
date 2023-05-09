@@ -21,7 +21,7 @@ I apologize for the poor program.
 * PushButton.py(https://github.com/backy0175/pico-examples/blob/main/Button/PushButton.py)
 
 ## Future Plan
-- [ ] make a sound.(XIAO Expansion Board Passive buzzer)
+- [x] make a sound.(XIAO Expansion Board Passive buzzer)
 - [ ] Display the results when matching numbers.
 - [ ] Bugfix: show dice when idle.
 - [ ] Bugfix: The display of counter numbers, etc. is broken.
