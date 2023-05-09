@@ -1,16 +1,21 @@
 # pico-dice_roll 
 ## Description
 dice roll
+
 keep rolling 1 to 16 dice.
+
 Count the number of times roll the dice.
 
-Operation confirmed on XIAO RP2040 and Expansion Board
+Operation confirmed on XIAO RP2040 and Expansion Board.
 
 under development.
+
 try gitgub fuatures.
+
 Be able to operate vscode.🐣
 
 🌱 I’m currently learning Python.
+
 I apologize for the poor program.
 
 ## Requirement
