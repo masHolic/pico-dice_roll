@@ -10,24 +10,70 @@ from PushButton import Debounced
 
 
 class Dice:
-    def __init__(self, x: int, y: int, size: int, spots=1):
+    def __init__(self, x: int, y: int, size: int, number=1):
         self.x = x
         self.y = y
         self.dice_size = size
         self.spot_size = size // 8
-        self.spots = max(1, min(spots, 6))
+        self.number = max(1, min(number, 6))
+        self.spots = {}
+        # spots location
+        # 7 is a big spot
+        # [0] , ------ , [1]
+        # [2] , [6][7] , [3]
+        # [4] , ------ , [5]
+        self.spots[0] = {"x": int(self.x + (self.dice_size / 4) - (self.spot_size / 2)),
+                         "y": int(self.y + (self.dice_size / 4) - (self.spot_size / 2)),
+                         "w": self.spot_size,
+                         "h": self.spot_size,
+                         "c": 1}
+        self.spots[1] = {"x": int(self.x + (self.dice_size / 4) * 3 - (self.spot_size / 2)),
+                         "y": int(self.y + (self.dice_size / 4) - (self.spot_size / 2)),
+                         "w": self.spot_size,
+                         "h": self.spot_size,
+                         "c": 1}
+        self.spots[2] = {"x": int(self.x + (self.dice_size / 4) - (self.spot_size / 2)),
+                         "y": int(self.y + (self.dice_size / 4) * 2 - (self.spot_size / 2)),
+                         "w": self.spot_size,
+                         "h": self.spot_size,
+                         "c": 1}
+        self.spots[3] = {"x": int(self.x + (self.dice_size / 4) * 3 - (self.spot_size / 2)),
+                         "y": int(self.y + (self.dice_size / 4) * 2 - (self.spot_size / 2)),
+                         "w": self.spot_size,
+                         "h": self.spot_size,
+                         "c": 1}
+        self.spots[4] = {"x": int(self.x + (self.dice_size / 4) - (self.spot_size / 2)),
+                         "y": int(self.y + (self.dice_size / 4) * 3 - (self.spot_size / 2)),
+                         "w": self.spot_size,
+                         "h": self.spot_size,
+                         "c": 1}
+        self.spots[5] = {"x": int(self.x + (self.dice_size / 4) * 3 - (self.spot_size / 2)),
+                         "y": int(self.y + (self.dice_size / 4) * 3 - (self.spot_size / 2)),
+                         "w": self.spot_size,
+                         "h": self.spot_size,
+                         "c": 1}
+        self.spots[6] = {"x": int(self.x + (self.dice_size / 2) - (self.spot_size / 2)),
+                         "y": int(self.y + (self.dice_size / 2) - (self.spot_size / 2)),
+                         "w": self.spot_size,
+                         "h": self.spot_size,
+                         "c": 1}
+        self.spots[7] = {"x": int(self.x + (self.dice_size / 2) - self.spot_size),
+                         "y": int(self.y + (self.dice_size / 2) - self.spot_size),
+                         "w": self.spot_size * 2,
+                         "h": self.spot_size * 2,
+                         "c": 1}
 
     def __str__(self):
-        return f'[x: {self.x}, y: {self.y}, spots:{self.spots}]'
+        return f'[x: {self.x}, y: {self.y}, spots:{self.number}]'
 
     def __eq__(self, other):
-        return self.spots == other.spots
+        return self.number == other.number
 
     def __lt__(self, other):
-        return self.spots < other.spots
+        return self.number < other.number
 
     def __gt__(self, other):
-        return self.spots > other.spots
+        return self.number > other.number
 
     def __hash__(self):
         return super().__hash__()
@@ -37,52 +83,46 @@ class Dice:
         self.show_spots()
 
     def show_outline(self):
-        display.rect(self.x, self.y, self.dice_size, self.dice_size, 1)
-        display.fill_rect(self.x, self.y, 2, 2, 0)
-        display.fill_rect(self.x + self.dice_size - 2, self.y, 2, 2, 0)
-        display.fill_rect(self.x, self.y + self.dice_size - 2, 2, 2, 0)
-        display.fill_rect(self.x + self.dice_size - 2, self.y + self.dice_size - 2, 2, 2, 0)
-        display.pixel(self.x, self.y, 0)
-        display.pixel(self.x + self.dice_size - 1, self.y, 0)
-        display.pixel(self.x, self.y + self.dice_size - 1, 0)
-        display.pixel(self.x + self.dice_size-1, self.y + self.dice_size - 1, 0)
-
+        display.hline(self.x + 2, self.y, self.dice_size - 4, 1)
+        display.hline(self.x + 2, self.y + self.dice_size - 1, self.dice_size - 4, 1)
+        display.vline(self.x, self.y + 2, self.dice_size - 4, 1)
+        display.vline(self.x + self.dice_size - 1, self.y + 2, self.dice_size - 4, 1)
         display.pixel(self.x + 1, self.y + 1, 1)
         display.pixel(self.x + self.dice_size - 2, self.y + 1, 1)
         display.pixel(self.x + 1, self.y + self.dice_size - 2, 1)
         display.pixel(self.x + self.dice_size - 2, self.y + self.dice_size - 2, 1)
 
     def show_spots(self):
-        if self.spots == 1:
-            display.fill_rect(int(self.x + (self.dice_size / 2) - self.spot_size), int(self.y + (self.dice_size / 2) - self.spot_size), self.spot_size * 2, self.spot_size * 2, 1)
-        elif self.spots == 2:
-            display.fill_rect(int(self.x + (self.dice_size / 3) * 2 - self.spot_size / 2), int(self.y + (self.dice_size / 3) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 3) - self.spot_size / 2), int(self.y + (self.dice_size / 3) * 2 - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-        elif self.spots == 3:
-            display.fill_rect(int(self.x + (self.dice_size / 4) * 3 - self.spot_size / 2), int(self.y + (self.dice_size / 4) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 2) - self.spot_size / 2), int(self.y + (self.dice_size / 2) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 3 - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-        elif self.spots == 4:
-            display.fill_rect(int(self.x + (self.dice_size / 3) - self.spot_size / 2), int(self.y + (self.dice_size / 3) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 3) * 2 - self.spot_size / 2), int(self.y + (self.dice_size / 3) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 3) - self.spot_size / 2), int(self.y + (self.dice_size / 3) * 2 - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 3) * 2 - self.spot_size / 2), int(self.y + (self.dice_size / 3) * 2 - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-        elif self.spots == 5:
-            display.fill_rect(int(self.x + (self.dice_size / 4) - self.spot_size / 2), int(self.y + (self.dice_size / 4) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) * 3 - self.spot_size / 2), int(self.y + (self.dice_size / 4) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) * 2 - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 2- self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 3- self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) * 3 - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 3- self.spot_size / 2), self.spot_size, self.spot_size, 1)
-        elif self.spots == 6:
-            display.fill_rect(int(self.x + (self.dice_size / 4) - self.spot_size / 2), int(self.y + (self.dice_size / 4) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) * 3 - self.spot_size / 2), int(self.y + (self.dice_size / 4) - self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 2- self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) * 3 - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 2- self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 3- self.spot_size / 2), self.spot_size, self.spot_size, 1)
-            display.fill_rect(int(self.x + (self.dice_size / 4) * 3 - self.spot_size / 2), int(self.y + (self.dice_size / 4) * 3- self.spot_size / 2), self.spot_size, self.spot_size, 1)
+        if self.number == 1:
+            display.fill_rect(self.spots[7]["x"], self.spots[7]["y"], self.spots[7]["w"], self.spots[7]["h"], self.spots[7]["c"])
+        elif self.number == 2:
+            display.fill_rect(self.spots[0]["x"], self.spots[0]["y"], self.spots[0]["w"], self.spots[0]["h"], self.spots[0]["c"])
+            display.fill_rect(self.spots[5]["x"], self.spots[5]["y"], self.spots[5]["w"], self.spots[5]["h"], self.spots[5]["c"])
+        elif self.number == 3:
+            display.fill_rect(self.spots[0]["x"], self.spots[0]["y"], self.spots[0]["w"], self.spots[0]["h"], self.spots[0]["c"])
+            display.fill_rect(self.spots[5]["x"], self.spots[5]["y"], self.spots[5]["w"], self.spots[5]["h"], self.spots[5]["c"])
+            display.fill_rect(self.spots[6]["x"], self.spots[6]["y"], self.spots[6]["w"], self.spots[6]["h"], self.spots[6]["c"])
+        elif self.number == 4:
+            display.fill_rect(self.spots[0]["x"], self.spots[0]["y"], self.spots[0]["w"], self.spots[0]["h"], self.spots[0]["c"])
+            display.fill_rect(self.spots[1]["x"], self.spots[1]["y"], self.spots[1]["w"], self.spots[1]["h"], self.spots[1]["c"])
+            display.fill_rect(self.spots[4]["x"], self.spots[4]["y"], self.spots[4]["w"], self.spots[4]["h"], self.spots[4]["c"])
+            display.fill_rect(self.spots[5]["x"], self.spots[5]["y"], self.spots[5]["w"], self.spots[5]["h"], self.spots[5]["c"])
+        elif self.number == 5:
+            display.fill_rect(self.spots[0]["x"], self.spots[0]["y"], self.spots[0]["w"], self.spots[0]["h"], self.spots[0]["c"])
+            display.fill_rect(self.spots[1]["x"], self.spots[1]["y"], self.spots[1]["w"], self.spots[1]["h"], self.spots[1]["c"])
+            display.fill_rect(self.spots[4]["x"], self.spots[4]["y"], self.spots[4]["w"], self.spots[4]["h"], self.spots[4]["c"])
+            display.fill_rect(self.spots[5]["x"], self.spots[5]["y"], self.spots[5]["w"], self.spots[5]["h"], self.spots[5]["c"])
+            display.fill_rect(self.spots[6]["x"], self.spots[6]["y"], self.spots[6]["w"], self.spots[6]["h"], self.spots[6]["c"])
+        elif self.number == 6:
+            display.fill_rect(self.spots[0]["x"], self.spots[0]["y"], self.spots[0]["w"], self.spots[0]["h"], self.spots[0]["c"])
+            display.fill_rect(self.spots[1]["x"], self.spots[1]["y"], self.spots[1]["w"], self.spots[1]["h"], self.spots[1]["c"])
+            display.fill_rect(self.spots[2]["x"], self.spots[2]["y"], self.spots[2]["w"], self.spots[2]["h"], self.spots[2]["c"])
+            display.fill_rect(self.spots[3]["x"], self.spots[3]["y"], self.spots[3]["w"], self.spots[3]["h"], self.spots[3]["c"])
+            display.fill_rect(self.spots[4]["x"], self.spots[4]["y"], self.spots[4]["w"], self.spots[4]["h"], self.spots[4]["c"])
+            display.fill_rect(self.spots[5]["x"], self.spots[5]["y"], self.spots[5]["w"], self.spots[5]["h"], self.spots[5]["c"])
 
     def roll(self):
-        self.spots = random.randint(1, 6)
+        self.number = random.randint(1, 6)
 
 
 def press_button(button):
