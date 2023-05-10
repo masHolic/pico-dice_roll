@@ -106,10 +106,11 @@ def press_button(button):
 
     elif status == 'roll':
         global speed
+        global next_speed
         if speed == 'fast':
-            speed = 'slow'
+            next_speed = 'slow'
         elif speed == 'slow':
-            speed = 'fast'
+            next_speed = 'fast'
 
 
 def sound_dice():
@@ -170,6 +171,7 @@ repdigit_count = 0
 repdigit = False
 
 speed = 'slow'
+next_speed = 'slow'
 SPIN_MOTION = {'fast': False, 'slow': True}
 VISUAL_CONFIRM = {'fast': 0, 'slow': 1}
 REPDIGIT_WAIT = {'fast': 1, 'slow': 4}
@@ -250,6 +252,7 @@ while True:
             status = 'roll'
 
     elif status == 'roll':
+        speed = next_speed
         if SPIN_MOTION[speed]:
             # dummy spinning dice
             dice_se = True
