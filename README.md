@@ -25,8 +25,3 @@ I apologize for the poor program.
 * ssd1306.py(https://files.seeedstudio.com/wiki/XIAO-RP2040/img/micropython/XIAO-RP2040-MicroPython-Grove.zip)
 * PushButton.py(https://github.com/backy0175/pico-examples/blob/main/Button/PushButton.py)
 
-## Future Plan
-- [x] make a sound.(XIAO Expansion Board Passive buzzer)
-- [ ] Display the results when matching numbers.
-- [ ] Bugfix: show dice when idle.
-- [ ] Bugfix: The display of counter numbers, etc. is broken.
