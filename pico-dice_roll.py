@@ -96,8 +96,12 @@ def press_button(button):
     dt_pushed = time.ticks_ms()
     print('pressed ', button)
 
+    global button_wait
     global status
-    if status == 'wait':
+    if button_wait:
+        button_wait = False
+
+    elif status == 'wait':
         status = 'select'
 
     elif status == 'select':
@@ -149,6 +153,7 @@ p1 = Debounced(27, Pin.PULL_UP)
 p1.debouncedIRQ(press_button, Pin.IRQ_FALLING)
 
 status = 'wait'
+button_wait = False
 
 next_dice_number = 1
 timer = 5
@@ -161,13 +166,13 @@ dice_count = 1
 dice_max = 16
 
 roll_count = 0
-match_count = 0
-match = False
+repdigit_count = 0
+repdigit = False
 
 speed = 'slow'
 spin_motion = {'fast': False, 'slow': True}
 visual_confirm = {'fast': 0, 'slow': 1}
-match_wait = {'fast': 1, 'slow': 4}
+repdigit_wait = {'fast': 1, 'slow': 4}
 
 dices = []
 
@@ -230,8 +235,8 @@ while True:
         for dice in dices:
             dice.show()
 
-        expect = 1 / (1 / (6 ** (dice_number - 1)))
-        display.text(f'{expect: >12}', 31, 47, 1)
+        expect = int(1 / (1 / (6 ** (dice_number - 1))))
+        display.text(f'{expect:>16d}', 0, 47, 1)
 
         dt_now = time.ticks_ms()
         countdown = timer - (dt_now - dt_pushed) / 1000
@@ -249,14 +254,13 @@ while True:
             # dummy spinning dice
             dice_se = True
             _thread.start_new_thread(sound_dice, ())
-    #        for i in range(roll_time[speed]):
             while dice_se:
                 display.fill(0)
                 for dice in dices:
                     dice.roll()
                     dice.show()
-                display.text(f'{match_count: >5}', 88, 47, 1)
-                display.text(f'{roll_count: >5}', 88, 55, 1)
+                display.text(f'{repdigit_count: >5}', 88, 47, 1)
+                display.text(f'{roll_count:>16d}', 0, 55, 1)
                 display.show()
 
         roll_count += 1
@@ -267,22 +271,22 @@ while True:
             dice.show()
 
         if min(dices) == max(dices):
-            print(f'match! {roll_count=}')
-            match_count += 1
-            match = True
+            print(f'repdigit! {roll_count=}')
+            repdigit_count += 1
+            repdigit = True
             # time.sleep(2)
         else:
-            match = False
+            repdigit = False
 
-        display.text(f'{match_count: >5}', 88, 47, 1)
-        display.text(f'{roll_count: >5}', 88, 55, 1)
+        display.text(f'{repdigit_count: >5}', 88, 47, 1)
+        display.text(f'{roll_count:>16d}', 0, 55, 1)
         display.show()
 
-        if match:
+        if repdigit:
             repdigit_se = True
             _thread.start_new_thread(sound_repdigit, ())
-            time.sleep(match_wait[speed])
-            while repdigit_se:
+            button_wait = True
+            while button_wait or repdigit_se:
                 time.sleep(0.1)
-
-        time.sleep(visual_confirm[speed])
+        else:
+            time.sleep(visual_confirm[speed])
