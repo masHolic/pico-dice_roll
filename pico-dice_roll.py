@@ -85,12 +85,6 @@ class Dice:
         self.spots = random.randint(1, 6)
 
 
-i2c = I2C(1, scl=Pin(7), sda=Pin(6), freq=200000)
-display = SSD1306_I2C(128, 64, i2c)
-screen_width = 127
-screen_height = 63
-
-
 def press_button(button):
     global dt_pushed
     dt_pushed = time.ticks_ms()
@@ -107,7 +101,7 @@ def press_button(button):
     elif status == 'select':
         global next_dice_number
         next_dice_number += 1
-        if next_dice_number > dice_max:
+        if next_dice_number > DICE_MAX:
             next_dice_number = 1
 
     elif status == 'roll':
@@ -116,9 +110,6 @@ def press_button(button):
             speed = 'slow'
         elif speed == 'slow':
             speed = 'fast'
-
-
-buzzer = PWM(Pin(29, Pin.OUT))
 
 
 def sound_dice():
@@ -149,30 +140,39 @@ def sound_repdigit():
     _thread.exit
 
 
+# Hardware Setup
+buzzer = PWM(Pin(29, Pin.OUT))
+
+i2c = I2C(1, scl=Pin(7), sda=Pin(6), freq=200000)
+display = SSD1306_I2C(128, 64, i2c)
+WIDTH = 127
+HEIGHT = 63
+
 p1 = Debounced(27, Pin.PULL_UP)
 p1.debouncedIRQ(press_button, Pin.IRQ_FALLING)
+
 
 status = 'wait'
 button_wait = False
 
-next_dice_number = 1
-timer = 5
+TIMER = 5
 dt_pushed = time.ticks_ms()
-countdown = timer
+countdown = TIMER
 
-margin = 3
+MARGIN = 3
+DICE_MAX = 16
 dice_number = 1
+next_dice_number = 1
 dice_count = 1
-dice_max = 16
 
 roll_count = 0
 repdigit_count = 0
 repdigit = False
 
 speed = 'slow'
-spin_motion = {'fast': False, 'slow': True}
-visual_confirm = {'fast': 0, 'slow': 1}
-repdigit_wait = {'fast': 1, 'slow': 4}
+SPIN_MOTION = {'fast': False, 'slow': True}
+VISUAL_CONFIRM = {'fast': 0, 'slow': 1}
+REPDIGIT_WAIT = {'fast': 1, 'slow': 4}
 
 dices = []
 
@@ -183,8 +183,8 @@ while True:
         display.fill(0)
         dice_size = 58
         if not dices:
-            x = margin
-            y = margin
+            x = MARGIN
+            y = MARGIN
             dices.append(Dice(x, y, dice_size))
 
         display.text('Push', 95, 55, 1)
@@ -223,8 +223,8 @@ while True:
         if not dices:
             for i in range(row):
                 for j in range(col):
-                    x = margin + (margin * j) + (dice_size * j)
-                    y = margin + (margin * i) + (dice_size * i)
+                    x = MARGIN + ((dice_size + MARGIN) * j)
+                    y = MARGIN + ((dice_size + MARGIN) * i)
                     dices.append(Dice(x, y, dice_size))
                     dice_count += 1
                     if dice_count > dice_number:
@@ -239,7 +239,7 @@ while True:
         display.text(f'{expect:>16d}', 0, 47, 1)
 
         dt_now = time.ticks_ms()
-        countdown = timer - (dt_now - dt_pushed) / 1000
+        countdown = TIMER - (dt_now - dt_pushed) / 1000
         display.text(f'{countdown:.2f}', 95, 55, 1)
 
         display.show()
@@ -250,7 +250,7 @@ while True:
             status = 'roll'
 
     elif status == 'roll':
-        if spin_motion[speed]:
+        if SPIN_MOTION[speed]:
             # dummy spinning dice
             dice_se = True
             _thread.start_new_thread(sound_dice, ())
@@ -263,18 +263,16 @@ while True:
                 display.text(f'{roll_count:>16d}', 0, 55, 1)
                 display.show()
 
-        roll_count += 1
-
         display.fill(0)
         for dice in dices:
             dice.roll()
             dice.show()
+        roll_count += 1
 
         if min(dices) == max(dices):
             print(f'repdigit! {roll_count=}')
             repdigit_count += 1
             repdigit = True
-            # time.sleep(2)
         else:
             repdigit = False
 
@@ -289,4 +287,4 @@ while True:
             while button_wait or repdigit_se:
                 time.sleep(0.1)
         else:
-            time.sleep(visual_confirm[speed])
+            time.sleep(VISUAL_CONFIRM[speed])
