@@ -277,7 +277,7 @@ while True:
         for dice in dices:
             dice.show()
 
-        expect = int(1 / (1 / (6 ** (dice_number - 1))))
+        expect = 6 ** (dice_number - 1)
         display.text(f'{expect:>16d}', 0, 47, 1)
 
         dt_now = time.ticks_ms()
