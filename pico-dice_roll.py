@@ -145,7 +145,7 @@ def press_button(button):
             next_dice_number = 1
 
     elif status == 'roll':
-        global speed
+        # global speed
         global next_speed
         if speed == 'fast':
             next_speed = 'slow'
@@ -179,6 +179,18 @@ def sound_repdigit():
         time.sleep(0.05)
     repdigit_se = False
     _thread.exit
+
+
+def show_info():
+    display.fill_rect(120, 47, 8, 9, 1)
+    display.pixel(120, 47, 0)
+    display.pixel(120, 47 + 8, 0)
+    display.pixel(120 + 7, 47, 0)
+    display.pixel(120 + 7, 47 + 8, 0)
+    display.text(MODE_DISPLAY[next_speed], 120, 48, 0)
+
+    display.text(f'{repdigit_count: >5}', 80, 48, 1)
+    display.text(f'{roll_count:>16d}', 0, 57, 1)
 
 
 # Hardware Setup
@@ -215,6 +227,7 @@ next_speed = 'slow'
 SPIN_MOTION = {'fast': False, 'slow': True}
 VISUAL_CONFIRM = {'fast': 0, 'slow': 1}
 REPDIGIT_WAIT = {'fast': 1, 'slow': 4}
+MODE_DISPLAY = {'fast': "F", 'slow': "S"}
 
 dices = []
 
@@ -229,7 +242,7 @@ while True:
             y = MARGIN
             dices.append(Dice(x, y, dice_size))
 
-        display.text('Push', 95, 55, 1)
+        display.text('Push', 95, 57, 1)
         for dice in dices:
             dice.show()
         display.show()
@@ -278,12 +291,17 @@ while True:
             dice.show()
 
         expect = 6 ** (dice_number - 1)
-        display.text(f'{expect:>16d}', 0, 47, 1)
+        display.text(f'{expect:>16d}', 0, 48, 1)
 
         dt_now = time.ticks_ms()
         countdown = TIMER - (dt_now - dt_pushed) / 1000
-        display.text(f'{countdown:.2f}', 95, 55, 1)
-
+        countdown_width = (39 / 5) * (5 - countdown)
+        display.rect(85, 56, 43, 8, 1)
+        display.pixel(85, 56, 0)
+        display.pixel(85, 56 + 7, 0)
+        display.pixel(85 + 42, 56, 0)
+        display.pixel(85 + 42, 56 + 7, 0)
+        display.fill_rect(87, 58, int(countdown_width), 4, 1)
         display.show()
 
         time.sleep(0.1)
@@ -302,8 +320,8 @@ while True:
                 for dice in dices:
                     dice.roll()
                     dice.show()
-                display.text(f'{repdigit_count: >5}', 88, 47, 1)
-                display.text(f'{roll_count:>16d}', 0, 55, 1)
+
+                show_info()
                 display.show()
 
         display.fill(0)
@@ -319,8 +337,7 @@ while True:
         else:
             repdigit = False
 
-        display.text(f'{repdigit_count: >5}', 88, 47, 1)
-        display.text(f'{roll_count:>16d}', 0, 55, 1)
+        show_info()
         display.show()
 
         if repdigit:
