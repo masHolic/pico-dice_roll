@@ -204,7 +204,7 @@ WIDTH = 127
 HEIGHT = 63
 
 p1 = Debounced(27, Pin.PULL_UP)
-p1.debouncedIRQ(press_button, Pin.IRQ_FALLING)
+p1.debouncedIRQ(press_button, Pin.IRQ_FALLING, 200)
 
 
 status = 'wait'
