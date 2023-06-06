@@ -1,3 +1,4 @@
+import machine
 from machine import Pin, I2C, PWM
 import time
 import random
@@ -126,6 +127,7 @@ class Dice:
 
 
 def press_button(button):
+    state = machine.disable_irq()
     global dt_pushed
     dt_pushed = time.ticks_ms()
     print('pressed ', button)
@@ -153,6 +155,8 @@ def press_button(button):
             next_speed = 'fast'
         elif next_speed == 'manual':
             next_speed = 'slow'
+
+    machine.enable_irq(state)
 
 
 def sound_dice():
@@ -237,6 +241,8 @@ dices = []
 print('START')
 
 while True:
+    # debug
+    # print(f'while loop: {status=}')
     if status == 'wait':
         display.fill(0)
         dice_size = 58
@@ -324,6 +330,8 @@ while True:
         if MANUAL_ROLL[speed]:
             button_wait = True
         while button_wait:
+            # debug
+            # print(f'button wait: {button_wait=}')
             time.sleep(0.1)
 
         if SPIN_MOTION[speed]:
@@ -331,6 +339,8 @@ while True:
             dice_se = True
             _thread.start_new_thread(sound_dice, ())
             while dice_se:
+                # debug
+                # print(f'dice se wait: {dice_se=}')
                 display.fill(0)
                 for dice in dices:
                     dice.roll()
@@ -361,6 +371,9 @@ while True:
             if REPDIGIT_WAIT[speed]:
                 button_wait = True
             while button_wait or repdigit_se:
+                # debug
+                # print(f'button wait: {button_wait=}')
+                # print(f'repdigit se wait: {repdigit_se=}')
                 time.sleep(0.1)
         else:
             time.sleep(VISUAL_CONFIRM[speed])
