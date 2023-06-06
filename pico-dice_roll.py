@@ -1,3 +1,4 @@
+import machine
 from machine import Pin, I2C, PWM
 import time
 import random
@@ -126,6 +127,7 @@ class Dice:
 
 
 def press_button(button):
+    state = machine.disable_irq()
     global dt_pushed
     dt_pushed = time.ticks_ms()
     print('pressed ', button)
@@ -147,10 +149,14 @@ def press_button(button):
     elif status == 'roll':
         # global speed
         global next_speed
-        if speed == 'fast':
-            next_speed = 'slow'
-        elif speed == 'slow':
+        if next_speed == 'fast':
+            next_speed = 'manual'
+        elif next_speed == 'slow':
             next_speed = 'fast'
+        elif next_speed == 'manual':
+            next_speed = 'slow'
+
+    machine.enable_irq(state)
 
 
 def sound_dice():
@@ -202,7 +208,7 @@ WIDTH = 127
 HEIGHT = 63
 
 p1 = Debounced(27, Pin.PULL_UP)
-p1.debouncedIRQ(press_button, Pin.IRQ_FALLING)
+p1.debouncedIRQ(press_button, Pin.IRQ_FALLING, 200)
 
 
 status = 'wait'
@@ -224,16 +230,19 @@ repdigit = False
 
 speed = 'slow'
 next_speed = 'slow'
-SPIN_MOTION = {'fast': False, 'slow': True}
-VISUAL_CONFIRM = {'fast': 0, 'slow': 1}
-REPDIGIT_WAIT = {'fast': 1, 'slow': 4}
-MODE_DISPLAY = {'fast': "F", 'slow': "S"}
+MANUAL_ROLL = {'fast': False, 'slow': False, 'manual': True}
+SPIN_MOTION = {'fast': False, 'slow': True, 'manual': True}
+VISUAL_CONFIRM = {'fast': 0, 'slow': 1, 'manual': 0}
+REPDIGIT_WAIT = {'fast': True, 'slow': True, 'manual': False}
+MODE_DISPLAY = {'fast': "F", 'slow': "S", 'manual': "M"}
 
 dices = []
 
 print('START')
 
 while True:
+    # debug
+    # print(f'while loop: {status=}')
     if status == 'wait':
         display.fill(0)
         dice_size = 58
@@ -310,12 +319,28 @@ while True:
             status = 'roll'
 
     elif status == 'roll':
-        speed = next_speed
+        if speed != next_speed:
+            speed = next_speed
+            display.fill(0)
+            for dice in dices:
+                dice.show()
+            show_info()
+            display.show()
+
+        if MANUAL_ROLL[speed]:
+            button_wait = True
+        while button_wait:
+            # debug
+            # print(f'button wait: {button_wait=}')
+            time.sleep(0.1)
+
         if SPIN_MOTION[speed]:
             # dummy spinning dice
             dice_se = True
             _thread.start_new_thread(sound_dice, ())
             while dice_se:
+                # debug
+                # print(f'dice se wait: {dice_se=}')
                 display.fill(0)
                 for dice in dices:
                     dice.roll()
@@ -343,8 +368,12 @@ while True:
         if repdigit:
             repdigit_se = True
             _thread.start_new_thread(sound_repdigit, ())
-            button_wait = True
+            if REPDIGIT_WAIT[speed]:
+                button_wait = True
             while button_wait or repdigit_se:
+                # debug
+                # print(f'button wait: {button_wait=}')
+                # print(f'repdigit se wait: {repdigit_se=}')
                 time.sleep(0.1)
         else:
             time.sleep(VISUAL_CONFIRM[speed])
